@@ -1,34 +1,75 @@
-# Costco Wrapped
+# Receipt2Csv
 
-A script to parse your Costco receipts (PDFs) and create a CSV with all the items you bought.
-
-See the [post on my blog](https://www.pathtosimple.com/is-costco-membership-worth-it) that inspired this.
-
-If there's interest, I'll continue to work on this. The final goal would be to have a Costco version
-of [Spotify Wrapped](https://en.wikipedia.org/wiki/Spotify_Wrapped).
+A script to parse your receipts from various stores (PDFs) and create a CSV with all the items you bought.
 
 ## How to use
 
-1. Download your [PDF receipts from Costco](https://www.pathtosimple.com/is-costco-membership-worth-it#user-content-fn-6).
-1. Save them all in a folder called `costco-receipt-pdfs`.
-1. Place the folder in the same directory as `index.js`.
-1. Make sure you have Node v15 or higher installed
-1. Run `npm install` to install the necessary dependencies.
-1. Run `npm run start` or `node index.js`.
-1. Take the ouputted CSV (`out/costco-receipts.csv`) and import it into Excel or Google Sheets and play around with it. See [my spreadsheet](https://docs.google.com/spreadsheets/d/1-fEhdeW133pcMtVP45fVvNoQeYeG_6Dw4gPUHJxiQ6E/edit?usp=sharing) if you're looking for inspiration.
+1. Download your PDF receipts from your store's website.
+2. Place them in a directory.
+3. Make sure you have Node v18 or higher installed.
+4. Run `npm install` to install the necessary dependencies.
+5. Run `node index.js <path_to_your_receipts_directory>`. For example, `node index.js ./my-receipts`.
+6. The script will generate CSV files in the `out/` directory, one for each store.
 
 ## How it works
 
-`index.js` is the entry point. See that file for an explanation of how it works.
+`index.js` is the entry point. It scans the specified directory for PDF files and then tries to find a suitable parser for each PDF.
 
-There are helper classes within the `src` directory.
+The parsers are located in the `src/parsers` directory. Each parser is a class that extends the base `ReceiptParser` and is responsible for parsing the text from a specific store's receipt.
 
-The most important of these is `CostcoReceiptParser`. This is the file that handles parsing
-the Costco receipt PDF. It's fed each line of the PDF and returns all of the transactions as well as metadata such as the date, total items sold, tax, etc.
+The application uses a plugin-based architecture, so you can easily add support for new stores without modifying the core application logic.
 
-This file is heavily commented to explain how it works.
+## Adding a New Store Parser
 
-The rest of the helper classes are fairly small and contain comments as well.
+To add support for a new store, you need to create a new parser class.
+
+1.  Create a new file in the `src/parsers` directory, for example, `MyStoreReceiptParser.js`.
+2.  In this file, define a class that extends `ReceiptParser`.
+3.  Implement the following methods in your class:
+
+    *   `getStoreName()`: Return the name of the store (e.g., "My Store").
+    *   `canParse(text)`: This method receives the full text of a receipt. It should return `true` if your parser can handle this text, and `false` otherwise. A simple way to do this is to check for the store's name in the text.
+    *   `parse(text)`: This is the main parsing method. It receives the full text of the receipt and should return an object with the extracted data.
+
+### Parser Template
+
+Here is a basic template for a new parser:
+
+```javascript
+const ReceiptParser = require('../ReceiptParser');
+
+class MyStoreReceiptParser extends ReceiptParser {
+  getStoreName() {
+    return "My Store";
+  }
+
+  canParse(text) {
+    // Check for a unique string that identifies the store's receipts
+    return text.includes("My Store");
+  }
+
+  parse(text) {
+    // Implement your parsing logic here
+    const transactions = []; // Array of transaction objects
+    let date, total, cardLastFour, storeInfo;
+
+    // Your logic to extract data from the 'text' variable
+    // and populate the variables above.
+
+    return {
+      transactions,
+      date,
+      total,
+      cardLastFour,
+      storeInfo,
+    };
+  }
+}
+
+module.exports = MyStoreReceiptParser;
+```
+
+Once you've created your parser, it will be automatically discovered and used by the application.
 
 ## Contributors
 
