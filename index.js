@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
-const pdf = require("pdfdataextract");
+const { PdfData } = require("pdfdataextract");
 const { CostcoReceiptParser } = require("./src/CostcoReceiptParser");
 const { CsvWriter } = require("./src/CsvWriter");
 const { NumberUtils } = require("./src/NumberUtils");
@@ -49,7 +49,7 @@ function getReceiptPdfFileNames() {
 function parseReceiptPdf(pdfName) {
   let transactions = [];
 
-  pdf.PdfData.extract(fs.readFileSync(pdfName)).then(data => {
+  PdfData.extract(fs.readFileSync(pdfName)).then(data => {
     const costcoReceiptParser = new CostcoReceiptParser();
 
     // data.text[] is an array of pages now - need to iterate through them
